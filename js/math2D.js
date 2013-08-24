@@ -142,11 +142,11 @@ function vector(vec_params, mode) {
     var end = add(center, this);
     line(ctx, center, end, color);
     
-    arrowhead1 = rth(-5, this.th);
+    arrowhead1 = rth(-10, this.th);
     arrowhead1.rotate(radians(20));
     arrowhead1.add(end);
     
-    arrowhead2 = rth(-5, this.th);
+    arrowhead2 = rth(-10, this.th);
     arrowhead2.rotate(radians(-20));
     arrowhead2.add(end);
     
@@ -158,6 +158,12 @@ function vector(vec_params, mode) {
   }
   vec_params.copy = function() {
     return xy(this.x, this.y);
+  }
+  vec_params.getNormal = function() { // returns a unit vector normal to this
+    var normal = this.copy();
+    normal.rotate(Math.PI/4);
+    normal.normalize();
+    return normal;
   }
   
   if (mode && !vec_params.mode) { vec_params.mode = mode; }
@@ -294,11 +300,15 @@ function vround(v, decimals) {
 }
 
 
- normalize = function(v, r) {
+normalize = function(v, r) {
     if (r == null) r = 1;
     return rth(r, v.th);s
   }
-
+projection = function(v, arg2) { // Second argument can either be another vector, or an angle
+  var th = arg2.th? arg2.th : arg2
+  return rth(v.r * Math.cos(v.th - th), th);
+}
+  
 // Computes the slope from p1 to p2
 function slope(p1, p2) {
   return (p1.y - p2.y) / (p1.x - p2.x)

@@ -26,22 +26,30 @@
   </body>
   
   <script type="text/javascript">
+    // Boolean options
+    var leave_ball_imprints = true;
+    var keep_tool_over_runs = true;
+    
     // Dimensions
     var toolbox_width = 150;
     var toolbox_item_size = xy(100, 100);
     var toolbox_pad = 30;
     var point_radius = 20;
     var ball_radius = 15;
+    var ball_start_velocity = xy(0, 1.5);
     var end_point_tolerance = 5;
     var wall_size = xy(80, 5);
-    var wall_tolerance = 3;
+    var wall_tolerance = 0;
     var attractor_radius = 10;
+    
     
     // Inputs
     var inputs = {
       start_run: "SPACE",
       halt_run: "SPACE",
-      enter_design_mode: "ENTER"
+      enter_design_mode: "ENTER",
+      rotate_wall_cw: "D",
+      rotate_wall_ccw: "A",
     }
     
     // Colors
@@ -65,9 +73,9 @@
     
     console.log("Press space to start the ball running.");
     
-     // HERE LIE MISCELLANEOUS DEBUG STATMENETS
+     // HERE LIE MISCELLANEOUS DEBUG STATEMENTS
     game.tickActions.push(function() {
-      
+      //scale(ball.velocity, 100).arrowOn(this.ctx, xy(500, 200)); // Show ball velocity
     });
     
     // Detect changes in game state
@@ -169,17 +177,18 @@
       }
     }
     ball.start = function() {
-      this.velocity = xy(0, 1);
+      this.velocity = ball_start_velocity.copy();
       this.unfreeze();
-      setTimeout(function() { ball.imprint(); }, 1000);
+      if (leave_ball_imprints) setTimeout(function() { ball.imprint(); }, 1000);
     }
     ball.stop = function() {
       this.velocity = xy(0, 0);
-      this.unfreeze();
+      this.freeze();
     }
     ball.reset = function() {
       this.pos = start_point.pos.copy();
       this.imprints = [];
+      this.freeze();
     }
     ball.imprint = function() {
       if (game.mode != "running") return;
@@ -221,7 +230,7 @@
       tool.icon.drawActions.push(tool.draw);
       tool.icon.pos = add(toolbox.getItemPos(tool.icon.index), scale(toolbox_item_size, 0.5));
       tool.icon.contains = function(pos) { return itemBoxContains(pos, this.index); } 
-      tool.icon.onmousedown = function() { player.current_tool = this.parent; }
+      tool.icon.onmousedown = function() { player.setTool(this.parent); }
     }
     
     // Tools
@@ -238,7 +247,7 @@
       icon: new GameObject(game),
       draw: function(pos, rotation) {
         if (pos == null) pos = this.pos;
-        if (rotation == null) rotation = 0;
+        if (rotation == null) rotation = tools.wall.input_params.rotation;
         game.ctx.save();
         game.ctx.translate(pos.x, pos.y);
         game.ctx.rotate(radians(rotation));
@@ -247,18 +256,40 @@
         game.ctx.restore();
       },
       instances: [],
-      make: function(pos, rotation) {
+      make: function(pos) {
         var wall = new GameObject(game);
         wall.parent = this;
         wall.pos = pos;
-        wall.rotation = rotation;
+        wall.rotation = this.input_params.rotation;
+        console.log("rotation: " + wall.rotation);
+        wall.has_interacted = false; // This will ensure that only 1 bounce is triggered when the ball bounces
+        wall.vector = rth(1, radians(wall.rotation));
+        wall.isBallTouching = function() {
+          var ballToThis = subtract(this.pos, ball.pos);
+          var d = Math.abs(projection(ballToThis, radians(this.rotation + 90)).r);
+          var l = Math.abs(projection(ballToThis, radians(this.rotation)).r);
+          return d < (wall_size.y/2 + ball_radius) && l < wall_size.x/2;
+          //return Math.abs(ball.pos.y - this.pos.y) < ball_radius + wall_tolerance;
+        }
         wall.drawActions.push(function() { this.parent.draw(this.pos, this.rotation); });
         wall.tickActions.push(function() {
-          if (Math.abs(ball.pos.y - this.pos.y) < ball_radius + wall_tolerance) ball.reverse();
+          if (this.isBallTouching()) {
+            if (!this.has_interacted) ball.velocity.reflect(this.vector);
+            this.has_interacted = true;
+          }
+          else this.has_interacted = false;
           // TODO TODO TODO: redo and account for rotation.
         });
         this.instances.push(wall);
-      }
+      },
+      input_params: { rotation: 0 },
+      
+      //not finished yet
+      param_input_checks: [ 
+        function() {
+          if (game.isKeyDown(inputs.rotate_wall_cw)) pass;
+        }
+      ]
     }
     configToolboxIcon(tools.wall, 0);
     
@@ -289,14 +320,12 @@
     
     // ========================================= Player (specifies which tool to use, etc)
     /* Notes:
-       - If you want to make the current tool stay persistent over multiple runs, change line %%1
-    
     */
     
     var player = new GameObject(game);
     player.current_tool = null;
     player.draw = function() {
-      if (game.mode != "design") { this.current_tool = null; return; } //%%1
+      if (game.mode != "design") { if (keep_tool_over_runs) this.current_tool = null; return; }
       if (this.current_tool == null) {
         this.ctx.drawImage(img_cursor, mouse.pos.x - img_cursor.width/2, mouse.pos.y - img_cursor.height/2);
       }
@@ -307,11 +336,25 @@
     player.contains = function(pos) { // this indicates everywhere that the player can place a tool
       return isBetweenCoords(pos, xy(toolbox_width, 0), game.size);
     }
+    player.setTool = function(tool) {
+      this.current_tool = tool;
+    }
     player.onclick = function() {
       if (game.mode != "design") return;
       if (this.current_tool == null) return;
       this.current_tool.make(mouse.pos);
     }
+    // Check for inputs that change the tool params
+    player.tickActions.push(function() {
+      if (this.current_tool == tools.wall) {
+        if (game.isKeyDown(inputs.rotate_wall_cw)) {
+          tools.wall.input_params.rotation += 1;
+        }
+        else if (game.isKeyDown(inputs.rotate_wall_ccw)) {
+          tools.wall.input_params.rotation -= 1;
+        }
+      }
+    });
     
   </script>
 </html>
