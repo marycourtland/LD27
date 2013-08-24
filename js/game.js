@@ -2,7 +2,7 @@ function Game(params) {
   // Initialize game settings
   if (params == null) params = {};
   this.fps = 60,
-  this.t0 = new Date().getTime(),
+  this.t0 = now(),
   this.mouse = null,
   this.display = {
     bg_color: params.bg_color? params.bg_color : 'white',
@@ -50,7 +50,7 @@ function Game(params) {
   
   // Game loop
   this.start = function() {
-    iter(this.objects, function(obj) { if (obj.kind.indexOf('dynamic') == -1) actuate(obj); });
+    iter(this.objects, function(obj) { if (obj.kind && obj.kind.indexOf('dynamic') == -1) actuate(obj); });
     this.setFont(this.display.font);
     this.next();
   }

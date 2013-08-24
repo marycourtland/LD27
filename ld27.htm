@@ -11,19 +11,219 @@
     <script type="text/javascript" src = "js/gameobject.js"></script>
     <script type="text/javascript" src = "js/field.js"></script>
     <title>New Game</title>
+    <style>
+      body {
+        background-color: #0F0404;
+      }
+      canvas {
+        cursor: none;
+      }
+    </style>
   </head>
   
   <body>
-    <canvas id="game_canvas" style="border:1px solid black;"></canvas>
+    <center><canvas id="game_canvas" style="background-color:'#FEE882'"></canvas></center>
   </body>
   
   <script type="text/javascript">
-    // The game
-    game = new Game();
-    game.setTitle("New game");
-    game.setSize(xy(600, 400));
+    // Dimensions
+    var toolbox_width = 150;
+    var toolbox_item_size = xy(100, 100);
+    var toolbox_pad = 30;
+    var point_radius = 20;
+    var ball_radius = 15;
+    var end_point_tolerance = 5;
+    var wall_size = xy(80, 5);
+    var wall_tolerance = 3;
+    
+    // Inputs
+    var inputs = {
+      start_timer: "SPACE"
+    }
+    
+    // Colors
+    var colors = {
+      blackish: "#0F0404",
+      bg: "#FEE882",
+      toolbox: "#B57F35",
+      point: "#CA7316",
+      ball: "#442415"
+    }
+    
+    // ========================================= The game
+    var game = new Game({bg_color: colors.bg});
+    game.setTitle("LD27 GAME");
+    game.setSize(xy(800, 600));
     window.onload = function() {
       game.start();
+    }
+    
+    // ========================================= Images
+    var img_cursor = loadImage(game.ctx, "images/cursor.png");
+    
+    
+    // ========================================= The timer
+    var timer = new GameObject(game);
+    timer.t0 = null;
+    timer.running = false;
+    timer.tickActions.push(function() { 
+      if (game.isKeyPressed(inputs.start_timer)) {
+        this.start();
+      }
+      if (this.running && distance(ball.pos, end_point.pos) < end_point_tolerance) {
+        console.log("You win!");
+        game.state.win = true;
+        this.stop();
+      }
+    });
+    timer.start = function() {
+      this.t0 = now();
+      ball.start();
+      this.running = true;
+      player.design_mode = false;
+    }
+    timer.stop = function() {
+      ball.stop();
+      this.running = false;
+      var dt = getTimeSince(this.t0) / 1000;
+      console.log("Your time was: " + dt + " seconds." );
+      player.design_mode = true;
+    }
+    
+    // ========================================= The start and end points
+    var start_point = new GameObject(game);
+    start_point.pos = xy(250, 100);
+    start_point.draw = function() {
+      this.ctx.save();
+      this.ctx.globalAlpha = 1;
+      circle(this.ctx, this.pos, point_radius, colors.point);
+      this.ctx.globalAlpha = 1;
+      emptyCircle(this.ctx, this.pos, point_radius - 5, colors.point);
+      emptyCircle(this.ctx, this.pos, point_radius - 10, colors.point);
+      emptyCircle(this.ctx, this.pos, point_radius - 15, colors.point);
+      this.ctx.restore();
+    }
+    
+    var end_point = new GameObject(game);
+    end_point.pos = xy(700, 500);
+    end_point.draw = start_point.draw;
+    
+    // ========================================= The ball
+    var ball = new GameObject(game);
+    ball.running = false;
+    ball.pos = start_point.pos.copy();
+    actuate(ball);
+    ball.draw = function() {
+      circle(this.ctx, this.pos, ball_radius, colors.ball);
+    }
+    navigate(ball, keydirs_lrud, 3); // temporary
+    ball.start = function() { this.running = true; this.pos = start_point.pos.copy(); this.velocity = xy(0, 1); }
+    ball.stop = function() { this.running = false; this.velocity = xy(0, 0); }
+    // Movement effects
+    ball.reverse = function() {
+      this.velocity.neg();
+    }
+    
+    // ========================================= Toolbox
+    var toolbox = new GameObject(game);
+    toolbox.drawActions.push(function() {
+      rect(this.ctx, xy(-1, -1), xy(toolbox_width, game.size.y), colors.toolbox);
+      text(this.ctx, "TOOLBOX", xy(toolbox_width / 2, toolbox_pad), "centered", colors.blackish);
+    });
+    toolbox.getItemPos = function(index) {;
+      return xy(toolbox_width / 2 - toolbox_item_size.x / 2, 
+                toolbox_pad * (2 + index) + toolbox_item_size.y * (index));
+    }
+    toolbox.drawItemBox = function(index) {
+      var center = this.getItemPos(index);
+      this.ctx.save();
+      this.ctx.globalAlpha = 0.5;
+      rect_rounded(this.ctx, center, add(center, toolbox_item_size), 10, colors.blackish);
+      this.ctx.restore();
+      return center;
+    }
+    itemBoxContains = function(pos, index) {
+      return isInArea(pos, toolbox.getItemPos(index), toolbox_item_size);
+    }
+    
+    // Individual icons
+    configToolboxIcon = function(tool, index) {
+      tool.icon.parent = tool;
+      tool.icon.index = index;
+      tool.icon.drawActions.push(function() { toolbox.drawItemBox(this.index); });
+      tool.icon.drawActions.push(tool.draw);
+      tool.icon.pos = add(toolbox.getItemPos(tool.icon.index), scale(toolbox_item_size, 0.5));
+      tool.icon.contains = function(pos) { return itemBoxContains(pos, this.index); } 
+      tool.icon.onmousedown = function() { player.current_tool = this.parent; }
+    }
+    
+    // Tools
+    var tools = {};
+    
+    // ========================================= Walls 
+    
+    /* TODO:
+      - Make an input method for rotated walls
+      - When checking for collision, account for wall rotation
+      - Actually make the ball bounce properly.
+    */
+    
+    tools.wall = {
+      icon: new GameObject(game),
+      draw: function(pos, rotation) {
+        if (pos == null) pos = this.pos;
+        if (rotation == null) rotation = 0;
+        game.ctx.save();
+        game.ctx.translate(pos.x, pos.y);
+        game.ctx.rotate(radians(rotation));
+        game.ctx.translate(-pos.x, -pos.y);
+        rect(game.ctx, subtract(pos, scale(wall_size, 0.5)), add(pos, scale(wall_size, 0.5)), colors.blackish);
+        game.ctx.restore();
+      },
+      instances: [],
+      make: function(pos, rotation) {
+        var wall = new GameObject(game);
+        wall.parent = this;
+        wall.pos = pos;
+        wall.rotation = rotation;
+        wall.drawActions.push(function() { this.parent.draw(this.pos, this.rotation); });
+        wall.tickActions.push(function() {
+          if (Math.abs(ball.pos.y - this.pos.y) < ball_radius + wall_tolerance) ball.reverse();
+          // TODO TODO TODO: redo and account for rotation.
+        });
+        this.instances.push(wall);
+      }
+    }
+    configToolboxIcon(tools.wall, 0);
+    
+    
+    
+    // ========================================= Player (specifies which tool to use, etc)
+    /* Notes:
+       - If you want to make the current tool stay persistent over multiple runs, change line %%1
+    
+    */
+    
+    var player = new GameObject(game);
+    player.design_mode = true;
+    player.current_tool = null;
+    player.draw = function() {
+      if (!this.design_mode) { this.current_tool = null; return; } //%%1
+      if (this.current_tool == null) {
+        this.ctx.drawImage(img_cursor, mouse.pos.x - img_cursor.width/2, mouse.pos.y - img_cursor.height/2);
+      }
+      else {
+        this.current_tool.draw(mouse.pos);
+      }
+    }
+    player.contains = function(pos) { // this indicates everywhere that the player can place a tool
+      return isBetweenCoords(pos, xy(toolbox_width, 0), game.size);
+    }
+    player.onclick = function() {
+      if (!this.design_mode) return;
+      if (this.current_tool == null) return;
+      console.log('make a new tool yaaay');
+      this.current_tool.make(mouse.pos);
     }
     
   </script>

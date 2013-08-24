@@ -147,11 +147,14 @@ function drawGrid(ctx, grid) {
     }
     
 }
-function getTimeSince(t0) {
-  return new Date().getTime() - t0;
-}
 function isTypeOf(obj, type) {
   // Type should be the instantiating function 
   var test = new type(); // not sure what to do if this throws argument errors
   return obj.__proto__ == test.__proto__;
+}
+function getTimeSince(t0) {
+  return new Date().getTime() - t0;
+}
+function now() {
+  return new Date().getTime();
 }
