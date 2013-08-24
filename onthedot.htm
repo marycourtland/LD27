@@ -262,6 +262,31 @@
     }
     configToolboxIcon(tools.wall, 0);
     
+    // ========================================= Attractors
+    
+    tools.attractor = {
+      icon: new GameObject(game),
+      draw: function(pos) {
+        if (pos == null) pos = this.pos;
+        circle(game.ctx, pos, attractor_radius, colors.blackish);
+      },
+      instances: [],
+      make: function(pos) {
+        var attractor = new GameObject(game);
+        attractor.parent = this;
+        attractor.pos = pos;
+        attractor.field = field_inverse_square(pos.copy(), {scale: 1000});
+        ball.obey('temp', attractor.field);
+        attractor.drawActions.push(function() { this.parent.draw(this.pos); });
+        attractor.tickActions.push(function() {
+          // TODO
+        });
+        this.instances.push(attractor);
+      }
+    }
+    configToolboxIcon(tools.attractor, 1);
+    
+    
     // ========================================= Player (specifies which tool to use, etc)
     /* Notes:
        - If you want to make the current tool stay persistent over multiple runs, change line %%1
