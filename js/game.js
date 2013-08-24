@@ -29,6 +29,7 @@ function Game(params) {
   this.setFont = function(font) {
     this.display.font = font;
     this.ctx.font = this.display.font.size.toString() + "px " + this.display.font.type;
+    if (this.display.font.italic) this.ctx.font = "italic " + this.ctx.font;
     this.ctx.fontsize = this.display.font.size;
   }
   
