@@ -35,10 +35,13 @@
     var end_point_tolerance = 5;
     var wall_size = xy(80, 5);
     var wall_tolerance = 3;
+    var attractor_radius = 10;
     
     // Inputs
     var inputs = {
-      start_timer: "SPACE"
+      start_run: "SPACE",
+      halt_run: "SPACE",
+      enter_design_mode: "ENTER"
     }
     
     // Colors
@@ -57,6 +60,54 @@
     window.onload = function() {
       game.start();
     }
+    // Modes can be "design", "running", or "score"
+    game.mode = "design";
+    
+    console.log("Press space to start the ball running.");
+    
+     // HERE LIE MISCELLANEOUS DEBUG STATMENETS
+    game.tickActions.push(function() {
+      
+    });
+    
+    // Detect changes in game state
+    game.tickActions.push(function() {
+      // Start running the ball/timer
+      if (game.mode == "design" && game.isKeyPressed(inputs.start_run)) {
+        timer.start();
+        ball.start();
+        game.mode = "running";
+      }
+      // Player halts the run
+      else if (game.mode == "running" && game.isKeyPressed(inputs.halt_run)) {
+        ball.stop();
+        timer.stop();
+        ball.reset();
+        game.mode = "design";
+      }
+      // The ball reaches the end
+      else if (game.mode == "running" && distance(ball.pos, end_point.pos) < end_point_tolerance) {
+        console.log("The ball has arrived!");
+        ball.stop();
+        timer.stop();
+        this.score();
+        console.log("Press enter to re-design");
+        game.mode = "score";
+      }
+      // Player goes back to design mode
+      else if (game.mode == "score" && game.isKeyPressed(inputs.enter_design_mode)) {
+        ball.reset();
+        game.mode = "design";
+      }
+      
+      // TODO: player can halt or pause the running
+    });
+    
+    // Show the player the score
+    game.score = function() {
+      console.log("Time taken: " + timer.result + " seconds." );
+      console.log("That is only " + Math.abs(timer.result - 10) + " seconds away from 10 seconds!");
+    }
     
     // ========================================= Images
     var img_cursor = loadImage(game.ctx, "images/cursor.png");
@@ -65,29 +116,18 @@
     // ========================================= The timer
     var timer = new GameObject(game);
     timer.t0 = null;
-    timer.running = false;
-    timer.tickActions.push(function() { 
-      if (game.isKeyPressed(inputs.start_timer)) {
-        this.start();
-      }
-      if (this.running && distance(ball.pos, end_point.pos) < end_point_tolerance) {
-        console.log("You win!");
-        game.state.win = true;
-        this.stop();
-      }
-    });
+    timer.result = 0;
     timer.start = function() {
       this.t0 = now();
-      ball.start();
-      this.running = true;
-      player.design_mode = false;
+      this.result = 0;
     }
     timer.stop = function() {
-      ball.stop();
-      this.running = false;
-      var dt = getTimeSince(this.t0) / 1000;
-      console.log("Your time was: " + dt + " seconds." );
-      player.design_mode = true;
+      this.result = this.getTime();
+      this.t0 = null;
+    }
+    timer.getTime = function() {
+      if (game.mode != "running") return this.result;
+      return getTimeSince(this.t0)/1000;
     }
     
     // ========================================= The start and end points
@@ -110,15 +150,42 @@
     
     // ========================================= The ball
     var ball = new GameObject(game);
-    ball.running = false;
     ball.pos = start_point.pos.copy();
     actuate(ball);
+    //navigate(ball, keydirs_lrud, 3); // temporary
+    ball.freeze();
+    ball.imprints = [];
     ball.draw = function() {
       circle(this.ctx, this.pos, ball_radius, colors.ball);
+      if (game.mode != "design") text(this.ctx, Math.floor(timer.getTime()).toString(), yshift(this.pos, -2), 'centered', 'white');
+      if (game.mode != "design") {
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.5;
+        for (var i = 0; i < this.imprints.length; i++) {
+          circle(this.ctx, this.imprints[i], ball_radius, colors.ball);
+          text(this.ctx,(i+1).toString(), yshift(this.imprints[i], -2), 'centered', 'black');
+        }
+        this.ctx.restore();
+      }
     }
-    navigate(ball, keydirs_lrud, 3); // temporary
-    ball.start = function() { this.running = true; this.pos = start_point.pos.copy(); this.velocity = xy(0, 1); }
-    ball.stop = function() { this.running = false; this.velocity = xy(0, 0); }
+    ball.start = function() {
+      this.velocity = xy(0, 1);
+      this.unfreeze();
+      setTimeout(function() { ball.imprint(); }, 1000);
+    }
+    ball.stop = function() {
+      this.velocity = xy(0, 0);
+      this.unfreeze();
+    }
+    ball.reset = function() {
+      this.pos = start_point.pos.copy();
+      this.imprints = [];
+    }
+    ball.imprint = function() {
+      if (game.mode != "running") return;
+      this.imprints.push(this.pos.copy());
+      setTimeout(function() { ball.imprint(); }, 1000);
+    }
     // Movement effects
     ball.reverse = function() {
       this.velocity.neg();
@@ -161,7 +228,6 @@
     var tools = {};
     
     // ========================================= Walls 
-    
     /* TODO:
       - Make an input method for rotated walls
       - When checking for collision, account for wall rotation
@@ -196,8 +262,6 @@
     }
     configToolboxIcon(tools.wall, 0);
     
-    
-    
     // ========================================= Player (specifies which tool to use, etc)
     /* Notes:
        - If you want to make the current tool stay persistent over multiple runs, change line %%1
@@ -205,10 +269,9 @@
     */
     
     var player = new GameObject(game);
-    player.design_mode = true;
     player.current_tool = null;
     player.draw = function() {
-      if (!this.design_mode) { this.current_tool = null; return; } //%%1
+      if (game.mode != "design") { this.current_tool = null; return; } //%%1
       if (this.current_tool == null) {
         this.ctx.drawImage(img_cursor, mouse.pos.x - img_cursor.width/2, mouse.pos.y - img_cursor.height/2);
       }
@@ -220,9 +283,8 @@
       return isBetweenCoords(pos, xy(toolbox_width, 0), game.size);
     }
     player.onclick = function() {
-      if (!this.design_mode) return;
+      if (game.mode != "design") return;
       if (this.current_tool == null) return;
-      console.log('make a new tool yaaay');
       this.current_tool.make(mouse.pos);
     }
     

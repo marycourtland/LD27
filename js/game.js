@@ -13,6 +13,8 @@ function Game(params) {
     frame: 0
   },
   this.stage = null,
+  this.tickActions = [],
+  this.finalActions = [],
   this.objects = [],
   this.addObject = function(obj) { this.objects.push(obj); }
   this.setSize = function(size) {
@@ -56,8 +58,9 @@ function Game(params) {
   }
   this.tick = function() {
     this.state.frame++;
-    this.mouse.update();
+    for (var i = 0; i < this.tickActions.length; i++) this.tickActions[i].call(this);
     this.stage();
+    for (var i = 0; i < this.finalActions.length; i++) this.finalActions[i].call(this);
   }
   this.next = function() {
     if (!this.win) setTimeout(function() { game.tick() }, 1000/this.fps);

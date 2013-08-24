@@ -79,11 +79,11 @@ function field_inverse_square(center, params) { // useful for planetary orbits
   params = params? params : {};
   params.scale = params.scale ? params.scale : 1;
   vf = field(function(obj) {
-    dist = subtract(center, obj.pos);
+    var dist = subtract(this.center, obj.pos);
     return rth(params.scale/(dist.r*dist.r), mod(dist.th, Math.PI*2));
-    
   });
   vf.type = 'acceleration';
+  vf.center = center;
   return vf;
 }
 

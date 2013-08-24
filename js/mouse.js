@@ -84,6 +84,8 @@ function config_mouse(game) {
   game.ctx.canvas.addEventListener("mousedown", function(event) { game.mouse.evt_down(event); });
   game.ctx.canvas.addEventListener("mouseup", function(event) { game.mouse.evt_up(event); });
   
+  game.tickActions.push(function() { this.mouse.update() });
+  
 }
 
 // Calling this function on a GameObject ensures that clicks are passed to its child objects

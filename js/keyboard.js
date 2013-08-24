@@ -69,20 +69,30 @@ keycodes[186] = "SEMICOLON";
 
     
 function config_keyboard(game) {
-  game.keyboard = {pressed_keys: []}
+  game.keyboard = {down_keys: [], pressed_keys: []};
+  
+  game.isKeyDown = function(key) {
+    return this.keyboard.down_keys.indexOf(key) != -1;
+  }
+  
   game.isKeyPressed = function(key) {
     return this.keyboard.pressed_keys.indexOf(key) != -1;
   }
 
-  window.addEventListener("keydown", function(event) {
+  window.onkeydown = function(event) {
     key = getKeyFromEvent(event);
-    if (game.keyboard.pressed_keys.indexOf(key) == -1) game.keyboard.pressed_keys.push(key);
-  });
+    if (game.keyboard.down_keys.indexOf(key) == -1) game.keyboard.down_keys.push(key);
+  };
   
-  window.addEventListener("keyup", function(event) {
+  window.onkeyup = function(event) {
     key = getKeyFromEvent(event);
-    if (game.keyboard.pressed_keys.indexOf(key) != -1)
-      removeFromArray(game.keyboard.pressed_keys.indexOf(key), game.keyboard.pressed_keys);
+    game.keyboard.pressed_keys.push(key);
+    if (game.keyboard.down_keys.indexOf(key) != -1)
+      removeFromArray(game.keyboard.down_keys.indexOf(key), game.keyboard.down_keys);
+  };
+  
+  game.finalActions.push(function() {
+    this.keyboard.pressed_keys = [];
   });
 
 }
