@@ -65,7 +65,8 @@
       bg: "#FEE882",
       toolbox: "#B57F35",
       point: "#CA7316",
-      ball: "#442415"
+      ball: "#442415",
+      ball2: "#0F0404",
     }
     
     // ========================================= The game
@@ -82,7 +83,7 @@
     console.log("Press space to start the ball running.");
     
      // HERE LIE MISCELLANEOUS DEBUG STATEMENTS. RIP BUGS
-    game.tickActions.push(function() {
+    game.finalActions.push(function() {
       //scale(ball.velocity, 100).arrowOn(this.ctx, xy(500, 200)); // Show ball velocity
     });
     
@@ -185,8 +186,13 @@
     ball.imprints = [];
     ball.draw = function() {
       circle(this.ctx, this.pos, ball_radius, colors.ball);
-      if (game.mode != "design") text(this.ctx, Math.floor(timer.getTime()).toString(), yshift(this.pos, -2), 'centered', 'white');
       if (game.mode != "design") {
+        // Draw progress
+        //text(this.ctx, Math.floor(timer.getTime()).toString(), yshift(this.pos, -2), 'centered', 'white');
+        var a = 360 * timer.getTime() / 10;
+        filledAngle(this.ctx, this.pos, ball_radius, -90, -90 + a, colors.ball2);
+        
+        // Draw imprints
         this.ctx.save();
         this.ctx.globalAlpha = 0.5;
         for (var i = 0; i < this.imprints.length; i++) {

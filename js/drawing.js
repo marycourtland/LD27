@@ -93,6 +93,21 @@ function bezier(ctx, p0, p1, c0, c1, show_controls) {
   }
   ctx.restore();
 }
+function filledAngle(ctx, center, radius, start_angle, end_angle, color) {
+  var a1 = mod360(radians(start_angle));
+  var a2 = mod360(radians(end_angle));
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.beginPath();
+  //ctx.moveTo(center.x, center.y)
+  ctx.arc(center.x, center.y, radius, a1, a2, false);
+  ctx.lineTo(center.x, center.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
 function text(ctx, txt, pos, pos_loc, color) {
   // Valid values for pos_loc:
   //  "centered"  => the given pos will be in the center of the text
