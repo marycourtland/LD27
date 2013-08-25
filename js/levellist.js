@@ -32,3 +32,13 @@ level3.score_text = [" ... That could have been closer to 10. Press space to try
 level3.draw_extras = function() {
 }
 var g = makeGrass(level3, start_pos.copy(), 200);
+
+// ================= LEVEL 4 ========================
+var level4 = makeLevel(4);
+level4.text = [
+  "Where will the wind take you?"
+],
+level4.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level4.draw_extras = function() {
+}
+var w = makeWind(level4, function(pos) { return xy(0, 1); } );

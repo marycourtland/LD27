@@ -52,6 +52,7 @@ function GameObject(game, params) {
     return false;
   };
   this.move = function(delta) {
+    if (this.frozen) return;
     this.pos.add(delta);
   };
   this.setImage = function(image_url, params) {
