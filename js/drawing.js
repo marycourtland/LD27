@@ -118,6 +118,8 @@ function text(ctx, txt, pos, pos_loc, color) {
   //  Anything else: same as "sw"
   if (color == null) color = 'black';
   
+  var linespacing = 1.5;
+  
   if (!isArray(txt)) txt = [txt];
   ctx.save();
   ctx.strokeStyle = color;
@@ -138,7 +140,7 @@ function text(ctx, txt, pos, pos_loc, color) {
   for (var i=0; i < txt.length; i++) {
     if (typeof(txt[i]) != "string") continue;
     ctx.fillText(txt[i], pos.x, pos.y);
-    pos.add(xy(0, ctx.fontsize));
+    pos.add(xy(0, ctx.fontsize * linespacing));
   }
   ctx.restore();
 }

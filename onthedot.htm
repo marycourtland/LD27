@@ -37,24 +37,31 @@
   
   <script type="text/javascript">
     // Boolean options
-    var leave_ball_imprints = true;
+    var leave_ball_imprints = false;
     var keep_tool_over_runs = true; // removed
     
     // Dimensions
-    var start_pos = xy(100, 150);
-    var end_pos = xy(700, 450);
+    var level_text_height = 150;
+    var start_pos = xy(100, 300);
+    var end_pos = xy(700, 300);
     var text_pad = 30;
     var point_radius = 20;
     var ball_radius = 15;
     var ball_imprint_radius = 4;
     var ball_start_velocity = xy(0, 0);
-    var ball_speed = 3;
+    var ball_speed = 2;
     var end_point_tolerance = 5;
     var wall_size = xy(80, 5);
     var wall_tolerance = 0;
     var attractor_radius = 10;
+    var timer_pos = xy(670, 50);
+    var timer_size = xy(50, 30);
+    var timer_pad = xy(10, 5);
+    var swamp_speed_reduction = 0.25;
     
     var default_font = {size: 16, type: 'Arial', italic: false};
+    var level_font = {size: 12, type: 'Arial', italic: true};
+    var huge_font = {size: 72, type: 'Arial', italic: false};
     
     var goal_text = "Your goal: guide the ball to the other point, in as close to 10 seconds as possible!";
     var instructions_text = "Press space to start a run, then use the arrow keys to guide the ball.";
@@ -64,7 +71,8 @@
     var inputs = {
       start_run: "SPACE",
       halt_run: "SPACE",
-      enter_design_mode: "ENTER",
+      enter_design_mode: "SPACE",
+      next_level: "ENTER",
       rotate_wall_cw: "D",
       rotate_wall_ccw: "A",
     }
@@ -73,10 +81,13 @@
     var colors = {
       blackish: "#0F0404",
       bg: "#FEE882",
+      timer: "#B57F35",
+      level_text: "#B57F35",
       point: "#CA7316",
       ball: "#442415",
       ball2: "#B57F35",
       ball_faded: "#A1864B",
+      swamp: "#6B5B0E",
     }
     
     // ========================================= The game
@@ -108,8 +119,11 @@
       // The ball reaches the end
       else if (game.mode == "running" && distance(ball.pos, end_point.pos) < end_point_tolerance) { this.endRunningMode(); this.enterScoreMode(); }
       
-      // Player goes back to design mode
-      else if (game.mode == "score" && game.isKeyPressed(inputs.enter_design_mode)) game.enterDesignMode();
+      // Player tries again
+      else if (game.mode == "score" && game.isKeyPressed(inputs.start_run)) this.enterRunningMode();
+      
+      // Player goes to next level
+      else if (game.mode == "score" && game.isKeyPressed(inputs.next_level)) { this.doNextLevel(); this.enterDesignMode(); }
     });
     
     // Change mode
@@ -117,12 +131,10 @@
       clear(game.imprint_ctx);
       ball.reset();
       game.mode = "design";
-      info.text = instructions_text;
-      info.text2 = goal_text;
     }
     game.enterRunningMode = function() {
-      info.text = cancel_text;
-      info.text2 = "";
+      clear(game.imprint_ctx);
+      ball.reset();
       timer.start();
       ball.start();
       game.mode = "running";
@@ -133,8 +145,6 @@
     }
     game.enterScoreMode = function() {
         this.score();
-        info.text = "Time: " + round(timer.result, 2) + " seconds. Press enter try again!";
-        game.mode = "score";
         game.mode = "score";
     }
     
@@ -148,6 +158,73 @@
     // ========================================= Images
     var img_cursor = loadImage(game.ctx, "images/cursor.png");
     
+    
+    // ========================================= LEVELS
+    
+    game.levels = [];
+    game.current_level = 1;
+    game.finalActions.push(function() { this.levels[this.current_level].draw(); });
+    game.doNextLevel = function() {
+      if (this.current_level < this.levels.length - 1) this.current_level += 1; 
+    }
+    
+    function makeLevel(id) {
+      var lvl = {
+        id: id,
+        text: [],
+        score_text: [],
+        draw: function() {
+          var txt = this.text;
+          if (game.mode == 'running' || game.mode == 'score') txt = txt.concat([round(timer.getTime(), 2).toString()]);
+          if (game.mode == 'score') txt = txt.concat(this.score_text);
+          rect(game.ctx, xy(0, 0), xy(game.size.x, level_text_height), colors.level_text);
+          game.setFont(level_font);
+          text(game.ctx, "Level " + this.id.toString(), xy(10, 20), "nw");
+          game.setFont(default_font);
+          text(game.ctx, txt, xy(20, 40), "nw");
+          game.setFont(default_font);
+          this.draw_extras();
+        },
+        draw_extras: function() {},
+        objects: []
+      };
+      game.levels.push(lvl);
+      return lvl;
+    }
+    function makeLevelObject(parent_level) {
+      var obj = new GameObject(game);
+      obj.level = parent_level;
+      obj._tick = obj.tick;
+      obj._draw = obj.draw;
+      obj.tick = function() { if (game.levels[game.current_level].id != this.level.id) return; this._tick(); }
+      obj.draw = function() { if (game.levels[game.current_level].id != this.level.id) return; this._draw(); }
+      return obj;
+    }
+    
+    // ----------------- Level 1 ------------------------
+    var level1 = makeLevel(1);
+    level1.text = [
+      "Get to the other place in exactly ten seconds. Ten point oh, on the dot!",
+      "Use the arrow keys to move. Press space when you're ready."
+    ],
+    level1.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+    level1.draw_extras = function() {
+      game.setFont(huge_font);
+      text(game.ctx, ["This is, in fact,", "the easiest level!"], xy(240, 380), "nw", colors.blackish);
+      game.setFont(default_font);      
+    }
+    
+    // ----------------- Level 2 ------------------------
+    var level2 = makeLevel(2);
+    level2.text = [
+      "Better hurry up! It will take longer to get through the swamp!"
+    ],
+    level2.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+    level2.draw_extras = function() {
+      game.setFont(huge_font);
+      //text(game.ctx, ["This is, in fact,", "the easiest level!"], xy(240, 380), "nw", colors.blackish);
+      game.setFont(default_font);      
+    }
     
     // ========================================= The timer
     var timer = new GameObject(game);
@@ -165,6 +242,17 @@
       if (game.mode != "running") return this.result;
       return getTimeSince(this.t0)/1000;
     }
+    
+    // ========================================= Mud.
+    var swamp = makeLevelObject(level2);
+    swamp.pos = end_pos.copy();
+    swamp.size = 200;
+    swamp.drawActions.push(function() {
+      circle(this.ctx, this.pos, this.size, colors.swamp);
+    });
+    swamp.tickActions.push(function() {
+      if (distance(ball.pos, this.pos) < this.size) ball.reduceVelocity(swamp_speed_reduction);
+    });
     
     // ========================================= The start and end points
     var start_point = new GameObject(game);
@@ -229,12 +317,12 @@
     ball.reverse = function() {
       this.velocity.neg();
     }
-    
-
-    
+    ball.scaleVelocity = function(factor) {
+      this.velocity_scale *= factor;
+    }
     
     // ========================================= Info line
-    
+    /*
     var info = new GameObject(game);
     info.pos = xy(game.size.x / 2, text_pad);
     info.pos2 = xy(game.size.x/ 2, game.size.y - text_pad);
@@ -247,7 +335,7 @@
       text(this.ctx, this.text2, this.pos2, "centered", colors.blackish);
       game.setFont(default_font);
     }
-    
+    */
     
   </script>
 </html>
