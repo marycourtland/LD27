@@ -5,6 +5,7 @@ game.setTitle("On The Dot.");
 game.setSize(xy(800, 600));
 game.setFont(default_font);
 window.onload = function() {
+  game.levels[game.current_level].onload();
   game.start();
 }
 // Modes can be "design", "running", or "score"

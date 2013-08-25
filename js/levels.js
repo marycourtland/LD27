@@ -51,6 +51,7 @@ function makeLevel(id) {
     tickActions: [],
   };
   game.levels.push(lvl);
+  lvl.loadActions.push(function() { motes.refresh(); }); // Create new motes at the beginning of each level
   lvl.leaveActions.push(function() { clear(game.bg_ctx); }); // Clean up the objects in the background
   return lvl;
 }

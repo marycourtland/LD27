@@ -1,4 +1,4 @@
-var start_level = 3;
+var start_level = 2;
 
 // Boolean options
 var leave_ball_imprints = false;
@@ -21,9 +21,11 @@ var attractor_radius = 10;
 var timer_pos = xy(670, 50);
 var timer_size = xy(50, 30);
 var timer_pad = xy(10, 5);
+var mote_size = xy(5, 5);
 
 var swamp_speed_reduction = 0.28;
 var grass_speed_boost = 2;
+var num_motes = 10;
 
 var default_font = {size: 16, type: 'Arial', italic: false};
 var level_font = {size: 12, type: 'Arial', italic: true};
@@ -55,4 +57,5 @@ var colors = {
   ball_faded: "#A1864B",
   swamp: "#6B5B0E",
   grass: "#AFD04C",
+  mote: "#B5A28A",
 }
