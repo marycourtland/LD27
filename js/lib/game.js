@@ -91,7 +91,9 @@ function Game(params) {
   
   // GAME EVENTS
   this.ctx.canvas.addEventListener("click", function(event) {
-    console.log("Clicked at " + mouse.pos);
+    var txt = "Clicked at " + mouse.pos + ".";
+    if (w) txt += " Wind is: " + w.vfield(mouse.pos);
+    console.log(txt);
   })
 
 }
