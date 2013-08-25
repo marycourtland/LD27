@@ -1,6 +1,6 @@
 // ========================================= Swamp
 function makeSwamp(level, pos, size) {
-  var swamp = makeLevelObject(level2);
+  var swamp = makeLevelObject(level);
   swamp.pos = pos;
   swamp.size = size;
   swamp.drawActions.push(function() {

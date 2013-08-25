@@ -1,5 +1,4 @@
 // ========================================= Grass
-
 function makeGrass(level, pos, size) {
   var grass = makeLevelObject(level);
   grass.pos = pos;

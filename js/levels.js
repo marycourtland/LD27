@@ -3,9 +3,14 @@
 
 game.levels = [];
 game.current_level = start_level;
+game.tickActions.push(function() { this.levels[this.current_level].tick(); });
 game.finalActions.push(function() { this.levels[this.current_level].draw(); });
 game.doNextLevel = function() {
-  if (this.current_level < this.levels.length - 1) this.current_level += 1; 
+  if (this.current_level < this.levels.length - 1) {
+    this.levels[this.current_level].onleave();
+    this.current_level += 1; 
+    this.levels[this.current_level].onload();
+  }
 }
 
 function makeLevel(id) {
@@ -13,6 +18,7 @@ function makeLevel(id) {
     id: id,
     text: [],
     score_text: [],
+    objects: [], // TODO: can't remember if i actually used this. check on that
     draw: function() {
       var txt = this.text;
       if (game.mode == 'running' || game.mode == 'score') txt = txt.concat([round(timer.getTime(), 2).toString()]);
@@ -25,12 +31,30 @@ function makeLevel(id) {
       game.setFont(default_font);
       this.draw_extras();
     },
-    draw_extras: function() {},
-    objects: []
+    draw_extras: function() {},    onload: function() {
+      for (var i = 0; i < this.loadActions.length; i++) {
+        this.loadActions[i].call(this);
+      }
+    },
+    onleave: function() {
+      for (var i = 0; i < this.leaveActions.length; i++) {
+        this.leaveActions[i].call(this);
+      }
+    },
+    tick: function() {
+      for (var i = 0; i < this.tickActions.length; i++) {
+        this.tickActions[i].call(this);
+      }
+    },
+    loadActions: [],
+    leaveActions: [],
+    tickActions: [],
   };
   game.levels.push(lvl);
+  lvl.leaveActions.push(function() { clear(game.bg_ctx); }); // Clean up the objects in the background
   return lvl;
 }
+
 function makeLevelObject(parent_level) {
   var obj = new GameObject(game);
   obj.level = parent_level;
@@ -40,30 +64,3 @@ function makeLevelObject(parent_level) {
   obj.draw = function() { if (game.levels[game.current_level].id != this.level.id) return; this._draw(); }
   return obj;
 }
-
-// ----------------- Level 1 ------------------------
-var level1 = makeLevel(1);
-level1.text = [
-  "Get to the other place in exactly ten seconds. Ten point oh, on the dot!",
-  "Use the arrow keys to move. Press space when you're ready."
-],
-level1.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
-level1.draw_extras = function() {
-  game.setFont(huge_font);
-  text(game.ctx, ["This is, in fact,", "the easiest level!"], xy(240, 380), "nw", colors.blackish);
-  game.setFont(default_font);      
-}
-
-// ----------------- Level 2 ------------------------
-var level2 = makeLevel(2);
-level2.text = [
-  "Better hurry up! It will take longer to get through the swamp!"
-],
-level2.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
-level2.draw_extras = function() {
-  game.setFont(huge_font);
-  //text(game.ctx, ["This is, in fact,", "the easiest level!"], xy(240, 380), "nw", colors.blackish);
-  game.setFont(default_font);      
-}
-
-makeSwamp(level2, end_pos.copy(), 200);
