@@ -80,9 +80,7 @@ function Game(params) {
   }
   this.gameplay = function() {
     clear(this.ctx);
-    if (this.isKeyPressed("L")) {
-      text(this.ctx, "L is pressed", xy(100, 100), "centered");
-    }
+    iter(this.objects, function(obj) { obj.preTick(); });
     iter(this.objects, function(obj) { obj.tick(); });
     iter(this.objects, function(obj) { obj.draw(); });
     this.next();

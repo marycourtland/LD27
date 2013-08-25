@@ -4,7 +4,14 @@ function GameObject(game, params) {
   
   this.id = params.id? params.id : 'obj' + (num_canvas_objects-1).toString();
   this.kind ="object";
-  this.reset = function() {};
+  
+  // The preTick method
+  this.preTick = function() {
+    for (var i = 0; i < this.preTickActions.length; i++) {
+      this.preTickActions[i].call(this);
+    }
+  };
+  this.preTickActions = [];
   
   // The tick method
   this.tick = function() {
@@ -396,6 +403,7 @@ function navigate(obj, keydirs, nav_speed, freeze) {
       if (this.navigation[i] == 'down') dx.add(xy(0, 1));
     }
     dx.normalize(this.nav_speed);
+    //if (game.state.frame % 50 == 0) console.log(dx+"");
     this.move(dx);
     this.dir = dx.th;
   });

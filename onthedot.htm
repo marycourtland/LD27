@@ -57,7 +57,7 @@
     var timer_pos = xy(670, 50);
     var timer_size = xy(50, 30);
     var timer_pad = xy(10, 5);
-    var swamp_speed_reduction = 0.25;
+    var swamp_speed_reduction = 0.28;
     
     var default_font = {size: 16, type: 'Arial', italic: false};
     var level_font = {size: 12, type: 'Arial', italic: true};
@@ -151,8 +151,7 @@
     
     // Show the player the score
     game.score = function() {
-      console.log("Time taken: " + timer.result + " seconds." );
-      console.log("That is only " + Math.abs(timer.result - 10) + " seconds away from 10 seconds!");
+      // ...what is the point of this method.
     }
     
     // ========================================= Images
@@ -162,7 +161,7 @@
     // ========================================= LEVELS
     
     game.levels = [];
-    game.current_level = 1;
+    game.current_level = 0;
     game.finalActions.push(function() { this.levels[this.current_level].draw(); });
     game.doNextLevel = function() {
       if (this.current_level < this.levels.length - 1) this.current_level += 1; 
@@ -251,7 +250,7 @@
       circle(this.ctx, this.pos, this.size, colors.swamp);
     });
     swamp.tickActions.push(function() {
-      if (distance(ball.pos, this.pos) < this.size) ball.reduceVelocity(swamp_speed_reduction);
+      if (distance(ball.pos, this.pos) < this.size) ball.scaleVelocity(swamp_speed_reduction);
     });
     
     // ========================================= The start and end points
@@ -320,6 +319,13 @@
     ball.scaleVelocity = function(factor) {
       this.velocity_scale *= factor;
     }
+    ball.velocity_scale = 1;
+    ball._move = ball.move;
+    ball.move = function(delta) { 
+      //if (game.state.frame%50==0) console.log("old: " + delta + " | new: " +  scale(delta, this.velocity_scale));
+      this._move(scale(delta, this.velocity_scale));
+    }
+    ball.preTickActions.push(function() { this.velocity_scale = 1; });
     
     // ========================================= Info line
     /*
