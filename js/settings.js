@@ -1,4 +1,4 @@
-var start_level = 6;
+var start_level = 7;
 
 // Boolean options
 var leave_ball_imprints = false;

@@ -141,7 +141,7 @@ function generateShockwave(start_frame, level) {
 // ================= LEVEL 8 ======================== 
 var level8 = makeLevel(8);
 level8.text = [
-  "Round and round"
+  "Be there, or be square."
 ],
 level8.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
 level8.draw_extras = function() {
@@ -149,7 +149,7 @@ level8.draw_extras = function() {
 level8.center = scale(game.size, 0.5).yshift(level_text_height/2)
 level8.strength = 2;
 w = makeWind(level8, function(pos) {
-  return xy(Math.sin(pos.x), Math.sin(pos.y));
+  return xy(this.level.strength * Math.sin(pos.y/100), this.level.strength * Math.sin(pos.x/100));
 });
 
 
