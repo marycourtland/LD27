@@ -17,16 +17,14 @@
       }
       canvas {
         position: absolute;
-        top: 30;
-        left: 30;
+        top: 50;
+        left: 50;
       }
       canvas#game_canvas {
-        cursor: none;
         z-index: 2;
       }
       canvas#imprint_canvas {
         background-color: #FEE882;
-        cursor: none;
         z-index: 1;
       }
     </style>
@@ -43,15 +41,14 @@
     var keep_tool_over_runs = true; // removed
     
     // Dimensions
-    var start_pos = xy(250, 150);
+    var start_pos = xy(100, 150);
     var end_pos = xy(700, 450);
-    var toolbox_width = 150;
-    var toolbox_item_size = xy(100, 100);
-    var toolbox_pad = 30;
+    var text_pad = 30;
     var point_radius = 20;
     var ball_radius = 15;
     var ball_imprint_radius = 4;
-    var ball_start_velocity = xy(0, 1.5);
+    var ball_start_velocity = xy(0, 0);
+    var ball_speed = 3;
     var end_point_tolerance = 5;
     var wall_size = xy(80, 5);
     var wall_tolerance = 0;
@@ -60,7 +57,7 @@
     var default_font = {size: 16, type: 'Arial', italic: false};
     
     var goal_text = "Your goal: guide the ball to the other point, in as close to 10 seconds as possible!";
-    var instructions_text = "Use a tool to change the ball's course. Press space to start a run.";
+    var instructions_text = "Press space to start a run, then use the arrow keys to guide the ball.";
     var cancel_text = "Press space to cancel the run"
     
     // Inputs
@@ -76,10 +73,9 @@
     var colors = {
       blackish: "#0F0404",
       bg: "#FEE882",
-      toolbox: "#B57F35",
       point: "#CA7316",
       ball: "#442415",
-      ball2: "#0F0404",
+      ball2: "#B57F35",
       ball_faded: "#A1864B",
     }
     
@@ -139,6 +135,7 @@
         this.score();
         info.text = "Time: " + round(timer.result, 2) + " seconds. Press enter try again!";
         game.mode = "score";
+        game.mode = "score";
     }
     
     
@@ -192,7 +189,7 @@
     ball.pos = start_point.pos.copy();
     actuate(ball);
     ball.tickActions.push(function() { game.mode == 'running'? this.unfreeze() : this.freeze(); });
-    navigate(ball, keydirs_lrud, 3); // temporary
+    navigate(ball, keydirs_lrud, ball_speed);
     ball.freeze();
     ball.imprints = [];
     ball.draw = function() {
@@ -225,7 +222,6 @@
     }
     ball.imprint = function() {
       if (game.mode != "running") return;
-      console.log("imprint");
       circle(game.imprint_ctx, this.pos, ball_radius, colors.ball_faded);
       setTimeout(function() { ball.imprint(); }, 1000);
     }
@@ -234,174 +230,17 @@
       this.velocity.neg();
     }
     
-    // ========================================= Toolbox
-    var toolbox = new GameObject(game);
-    toolbox.drawActions.push(function() {
-      rect(this.ctx, xy(-1, -1), xy(toolbox_width, game.size.y), colors.toolbox);
-      text(this.ctx, "TOOLBOX", xy(toolbox_width / 2, toolbox_pad), "centered", colors.blackish);
-    });
-    toolbox.getItemPos = function(index) {;
-      return xy(toolbox_width / 2 - toolbox_item_size.x / 2, 
-                toolbox_pad * (2 + index) + toolbox_item_size.y * (index));
-    }
-    toolbox.drawItemBox = function(index) {
-      var center = this.getItemPos(index);
-      this.ctx.save();
-      this.ctx.globalAlpha = 0.5;
-      rect_rounded(this.ctx, center, add(center, toolbox_item_size), 10, colors.blackish);
-      this.ctx.restore();
-      return center;
-    }
-    itemBoxContains = function(pos, index) {
-      return isInArea(pos, toolbox.getItemPos(index), toolbox_item_size);
-    }
-    
-    // Individual icons
-    configToolboxIcon = function(tool, index) {
-      tool.icon.parent = tool;
-      tool.icon.index = index;
-      tool.icon.drawActions.push(function() { toolbox.drawItemBox(this.index); });
-      tool.icon.drawActions.push(tool.draw);
-      tool.icon.pos = add(toolbox.getItemPos(tool.icon.index), scale(toolbox_item_size, 0.5));
-      tool.icon.contains = function(pos) { return itemBoxContains(pos, this.index); } 
-      tool.icon.onmousedown = function() { player.setTool(this.parent); }
-    }
-    
-    // Tools
-    var tools = {};
-    
-    // ========================================= Walls 
-    /* TODO:
-      - Make an input method for rotated walls
-      - When checking for collision, account for wall rotation
-      - Actually make the ball bounce properly.
-    */
-    
-    tools.wall = {
-      info: "The wall: causes the ball to bounce. Use A and D to turn it, and click to place.",
-      icon: new GameObject(game),
-      draw: function(pos, rotation) {
-        if (pos == null) pos = this.pos;
-        if (rotation == null) rotation = tools.wall.input_params.rotation;
-        game.ctx.save();
-        game.ctx.translate(pos.x, pos.y);
-        game.ctx.rotate(radians(rotation));
-        game.ctx.translate(-pos.x, -pos.y);
-        rect(game.ctx, subtract(pos, scale(wall_size, 0.5)), add(pos, scale(wall_size, 0.5)), colors.blackish);
-        game.ctx.restore();
-      },
-      instances: [],
-      make: function(pos) {
-        var wall = new GameObject(game);
-        wall.parent = this;
-        wall.pos = pos;
-        wall.rotation = this.input_params.rotation;
-        console.log("rotation: " + wall.rotation);
-        wall.has_interacted = false; // This will ensure that only 1 bounce is triggered when the ball bounces
-        wall.vector = rth(1, radians(wall.rotation));
-        wall.isBallTouching = function() {
-          var ballToThis = subtract(this.pos, ball.pos);
-          var d = Math.abs(projection(ballToThis, radians(this.rotation + 90)).r);
-          var l = Math.abs(projection(ballToThis, radians(this.rotation)).r);
-          return d < (wall_size.y/2 + ball_radius) && l < wall_size.x/2;
-          //return Math.abs(ball.pos.y - this.pos.y) < ball_radius + wall_tolerance;
-        }
-        wall.drawActions.push(function() { this.parent.draw(this.pos, this.rotation); });
-        wall.tickActions.push(function() {
-          if (this.isBallTouching()) {
-            if (!this.has_interacted) ball.velocity.reflect(this.vector);
-            this.has_interacted = true;
-          }
-          else this.has_interacted = false;
-          // TODO TODO TODO: redo and account for rotation.
-        });
-        this.instances.push(wall);
-      },
-      input_params: { rotation: 0 },
-      
-      //not finished yet
-      param_input_checks: [ 
-        function() {
-          if (game.isKeyDown(inputs.rotate_wall_cw)) pass;
-        }
-      ]
-    }
-    configToolboxIcon(tools.wall, 0);
-    
-    // ========================================= Attractors
-    
-    tools.attractor = {
-      info: "The attractor: pulls the ball towards it. Click to place.",
-      icon: new GameObject(game),
-      draw: function(pos) {
-        if (pos == null) pos = this.pos;
-        circle(game.ctx, pos, attractor_radius, colors.blackish);
-      },
-      instances: [],
-      make: function(pos) {
-        var attractor = new GameObject(game);
-        attractor.parent = this;
-        attractor.pos = pos;
-        attractor.field = field_inverse_square(pos.copy(), {scale: 1000});
-        ball.obey('temp', attractor.field);
-        attractor.drawActions.push(function() { this.parent.draw(this.pos); });
-        attractor.tickActions.push(function() {
-          // TODO
-        });
-        this.instances.push(attractor);
-      }
-    }
-    configToolboxIcon(tools.attractor, 1);
-    
-    
-    // ========================================= Player (specifies which tool to use, etc)
-    /* Notes:
-    */
-    
-    var player = new GameObject(game);
-    player.current_tool = null;
-    player.draw = function() {
-      if (game.mode != "design") { this.current_tool = null; }
-      if (this.current_tool == null) {
-        this.ctx.drawImage(img_cursor, mouse.pos.x - img_cursor.width/2, mouse.pos.y - img_cursor.height/2);
-      }
-      else {
-        this.current_tool.draw(mouse.pos);
-      }
-    }
-    player.contains = function(pos) { // this indicates everywhere that the player can place a tool
-      return isBetweenCoords(pos, xy(toolbox_width, 0), game.size);
-    }
-    player.setTool = function(tool) {
-      this.current_tool = tool;
-      info.text = tool.info;
-    }
-    player.onclick = function() {
-      if (game.mode != "design") return;
-      if (this.current_tool == null) return;
-      this.current_tool.make(mouse.pos);
-    }
-    // Check for inputs that change the tool params
-    player.tickActions.push(function() {
-      if (this.current_tool == tools.wall) {
-        if (game.isKeyDown(inputs.rotate_wall_cw)) {
-          tools.wall.input_params.rotation += 1;
-        }
-        else if (game.isKeyDown(inputs.rotate_wall_ccw)) {
-          tools.wall.input_params.rotation -= 1;
-        }
-      }
-    });
+
     
     
     // ========================================= Info line
     
     var info = new GameObject(game);
-    info.pos = xy(toolbox_width + (game.size.x - toolbox_width) / 2, toolbox_pad);
-    info.pos2 = xy(toolbox_width + (game.size.x - toolbox_width) / 2, game.size.y - toolbox_pad);
+    info.pos = xy(game.size.x / 2, text_pad);
+    info.pos2 = xy(game.size.x/ 2, game.size.y - text_pad);
     info.text = instructions_text;
     info.text2 = goal_text;
-    info.font = {size: 16, type: 'Arial', italic: true};
+    info.font = {size: 20, type: 'Arial', italic: false};
     info.draw = function() {
       game.setFont(this.font);
       text(this.ctx, this.text, this.pos, "centered", colors.blackish);

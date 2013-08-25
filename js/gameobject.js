@@ -386,6 +386,7 @@ function navigate(obj, keydirs, nav_speed, freeze) {
   if (nav_speed == null) obj.nav_speed = 3;
   else obj.nav_speed = nav_speed;
   obj.tickActions.push(function() {
+    if (this.frozen) return;
     if (this.navigation.length == 0) return;
     dx = xy(0, 0);
     for (var i=0; i < this.navigation.length; i++) {
