@@ -36,6 +36,16 @@ function makeLevel(id) {
         this.loadActions[i].call(this);
       }
     },
+    onrun: function() {
+      for (var i = 0; i < this.runActions.length; i++) {
+        this.runActions[i].call(this);
+      }
+    },
+    onload: function() {
+      for (var i = 0; i < this.loadActions.length; i++) {
+        this.loadActions[i].call(this);
+      }
+    },
     onleave: function() {
       for (var i = 0; i < this.leaveActions.length; i++) {
         this.leaveActions[i].call(this);
@@ -46,6 +56,7 @@ function makeLevel(id) {
         this.tickActions[i].call(this);
       }
     },
+    runActions: [],
     loadActions: [],
     leaveActions: [],
     tickActions: [],

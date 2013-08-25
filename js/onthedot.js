@@ -51,6 +51,7 @@ game.enterRunningMode = function() {
   ball.reset();
   timer.start();
   ball.start();
+  this.levels[this.current_level].onrun();
   game.mode = "running";
 }
 game.endRunningMode = function() {
