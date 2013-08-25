@@ -17,20 +17,22 @@ function Game(params) {
   this.finalActions = [],
   this.objects = [],
   this.addObject = function(obj) { this.objects.push(obj); }
-  this.setSize = function(size) {
+  this.setSize = function(size, ctx) {
+    if (ctx == null) ctx = this.ctx;
     this.size = size;
-    this.canvas.width = size.x;
-    this.canvas.height = size.y;
+    ctx.canvas.width = size.x;
+    ctx.canvas.height = size.y;
   }
   this.setTitle = function(title) {
     this.title = title;
     window.document.title = title;
   }
-  this.setFont = function(font) {
+  this.setFont = function(font, ctx) {
+    if (ctx == null) ctx = this.ctx;
     this.display.font = font;
-    this.ctx.font = this.display.font.size.toString() + "px " + this.display.font.type;
-    if (this.display.font.italic) this.ctx.font = "italic " + this.ctx.font;
-    this.ctx.fontsize = this.display.font.size;
+    ctx.font = this.display.font.size.toString() + "px " + this.display.font.type;
+    if (this.display.font.italic) ctx.font = "italic " + ctx.font;
+    ctx.fontsize = this.display.font.size;
   }
   
   // Create game canvas
@@ -40,7 +42,7 @@ function Game(params) {
   } else {
     this.canvas = window.document.getElementById("game_canvas")
   }
-  this.canvas.style.backgroundColor = this.display.bg_color;
+  //this.canvas.style.backgroundColor = this.display.bg_color;
 
   // Initialize canvas context
   this.ctx = this.canvas.getContext("2d");
