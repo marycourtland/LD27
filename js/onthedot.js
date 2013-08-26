@@ -111,17 +111,17 @@ draw_bullet = function(ctx, pos, size, color) {
 }
 
 scoretexts = {
-  2: "That could have been closer to 10. Press space to try again. ",
-  1: "Not too bad, but do you want to try to get closer? If so, press space. ",
-  0.1: "Well done! (But not perfect yet.) Press space to try again. ",
-  0.0: "Perfection has been attained! Press space to attain it again. ",
+  meh: "That could have been closer to 10. Press space to try again. ",
+  okay: "Not too bad, but do you want to try to get closer? If so, press space. ",
+  good: "Well done! (But not perfect yet.) Press space to try again. ",
+  perfect: "Perfection has been attained! Press space to attain it again. ",
 }
 
 function getScoreText() {
   var t = round(Math.abs(10 - timer.result), 1);
-  if (t > 2) return scoretexts[2];
-  else if (t > 1) return scoretexts[1];
-  else if (t > 0.1) return scoretexts[0.1];
-  else return scoretexts[0];
+  if (t > 2) return scoretexts.meh;
+  else if (t > 1) return scoretexts.okay;
+  else if (t > 0.01) return scoretexts.good;
+  else return scoretexts.perfect;
 }
 

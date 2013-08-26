@@ -11,7 +11,7 @@ game.doNextLevel = function() {
     this.current_level += 1; 
     this.levels[this.current_level].onload();
   }
-  else game.stage = game.titlescreen();
+  else game.stage = game.titlescreen;
 }
 
 function makeLevel(id) {
@@ -23,7 +23,7 @@ function makeLevel(id) {
     draw: function() {
       var txt = this.text;
       if (game.mode == 'running' || game.mode == 'score') txt = txt.concat([round(timer.getTime(), 2).toString()]);
-      if (game.mode == 'score') txt = txt.concat(this.score_text);
+      if (game.mode == 'score') txt = txt.concat(this.score_text());
       rect(game.ctx, xy(0, 0), xy(game.size.x, level_text_height), colors.level_text);
       game.setFont(level_font);
       text(game.ctx, "Level " + this.id.toString(), xy(10, 20), "nw");
