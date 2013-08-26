@@ -21,7 +21,7 @@ level2.text = [
 level2.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
 level2.draw_extras = function() {
 }
-var s = makeSwamp(level2, end_pos.copy(), 200);
+makeSwamp(level2, end_pos.copy(), 200);
 
 // ================= LEVEL 3 ======================== Introduce grass
 var level3 = makeLevel(3);
@@ -31,74 +31,109 @@ level3.text = [
 level3.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
 level3.draw_extras = function() {
 }
-var g = makeGrass(level3, start_pos.copy(), 200);
+ makeGrass(level3, start_pos.copy(), 200);
 
-// ================= LEVEL 4 ======================== Introduce wind
+// ================= LEVEL 4 ======================== Swamp / grass maze
 var level4 = makeLevel(4);
 level4.text = [
-  "Where will the wind take you?"
+  "Which path will you take?"
 ],
 level4.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
 level4.draw_extras = function() {
 }
-var w = makeWind(level4, function(pos) { return xy(0, 1); } );
+var v = rth(200, radians(60));
+var v2 = rth(200, radians(0));
 
-// ================= LEVEL 5 ======================== More interesting wind
+makeGrass(level4, start_pos.copy(), 100);
+
+makeSwamp(level4, add(start_pos, v2), 100);
+makeSwamp(level4, add(add(start_pos, v2), v2), 100);
+makeGrass(level4, add(add(add(start_pos, v2), v2), v2), 100);
+
+makeGrass(level4, add(start_pos, neg(v)), 100);
+makeSwamp(level4, add(add(start_pos, neg(v)), v2), 100);
+makeGrass(level4, add(add(add(start_pos, neg(v)), v2), v2), 100);
+makeGrass(level4, add(add(add(add(start_pos, neg(v)), v2), v2), v2), 100);
+makeGrass(level4, add(add(add(add(add(start_pos, neg(v)), v2), v2), v2), v2), 100);
+
+makeSwamp(level4, add(start_pos, v), 100);
+makeGrass(level4, add(add(start_pos, v), neg(v2)), 100);
+makeGrass(level4, add(add(add(start_pos, v), neg(v2)), v), 100);
+makeGrass(level4, add(add(start_pos, v), v2), 100);
+makeSwamp(level4, add(add(add(start_pos, v), v2), v2), 100);
+makeGrass(level4, add(add(add(add(start_pos, v), v2), v2), v2), 100);
+
+makeSwamp(level4, add(add(add(add(start_pos, v), neg(v2)), v2), v), 100);
+makeGrass(level4, add(add(add(add(add(start_pos, v), neg(v2)), v2), v2), v), 100);
+makeGrass(level4, add(add(add(add(add(add(start_pos, v), neg(v2)), v2), v2), v2), v), 100);
+
+
+// ================= LEVEL 5 ======================== Introduce wind
 var level5 = makeLevel(5);
 level5.text = [
-  "No need to rush!"
+  "You've grown wings! No more must you wade through swamp and grass.",
+  "But where will the wind take you?"
 ],
 level5.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
 level5.draw_extras = function() {
 }
-w = makeWind(level5, function(pos) {
-  return scale(subtract(end_point.pos, pos), 0.05);
-});
+var w = makeWind(level5, function(pos) { return xy(0, 1); } );
 
-// ================= LEVEL 6 ======================== Circular wind around grass
+// ================= LEVEL 6 ======================== More interesting wind
 var level6 = makeLevel(6);
 level6.text = [
-  "Round and round"
+  "No need to rush!"
 ],
 level6.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
 level6.draw_extras = function() {
 }
-level6.center = scale(game.size, 0.5).yshift(level_text_height/2)
-level6.strength = 2;
 w = makeWind(level6, function(pos) {
-  var p = this.level.center;
-  var th = subtract(pos, p).th - Math.PI/2; // This is CCW. For CW, add pi/2 instead
+  return scale(subtract(end_point.pos, pos), 0.05);
+});
+
+// ================= LEVEL 7 ======================== Circular wind around grass
+var level7 = makeLevel(7);
+level7.text = [
+  "Round and round."
+],
+level7.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level7.draw_extras = function() {
+}
+level7.center = scale(game.size, 0.5).yshift(level_text_height/2)
+level7.strength = 2;
+w = makeWind(level7, function(pos) {
+  var th = subtract(pos, this.level.center).th - Math.PI/2; // This is CCW. For CW, add pi/2 instead
   var v = rth(this.level.strength, th);
   return v;
 });
 
-// ================= LEVEL 7 ======================== EARTHQUAKE.
-var level7 = makeLevel(7);
-level7.text = [
+// ================= LEVEL 8 ======================== EARTHQUAKE.
+var level8 = makeLevel(8);
+level8.text = [
   "Carry on, nothing to see here."
 ],
-level7.score_text = [" ... Eeek! Yes, it's hard to be on time when catastrophes happen! Maybe you'll have better luck if you try again."];
-level7.draw_extras = function() {
+level8.score_text = [" ... Eeek! Yes, it's hard to be on time when catastrophes happen! Maybe you'll have better luck if you try again."];
+level8.draw_extras = function() {
   if (!this.earthquake) return;
   game.setFont(huge_font);
   text(game.ctx, ["EARTHQUAKE!"], xy(80, 380), "nw", colors.blackish);
   game.setFont(default_font);
   
 }
-level7.earthquake = false;
-level7.shockwave = null;
-level7.runActions.push(function() {
+level8.earthquake = false;
+level8.shockwave = null;
+level8.runActions.push(function() {
   var earthquake_time = 5 + Math.random() * 3;
   console.log("earthquake time: ", earthquake_time);
   // Set timeout for earthquake
   setTimeout(function() {
-      level7.earthquake = true;
-      level7.shockwave = generateShockwave(game.state.frame, level7);
+      level8.earthquake = true;
+      level8.shockwave = generateShockwave(game.state.frame, level8);
     }, earthquake_time*1000);
 });
-level7.leaveActions.push(function() { this.earthquake = false; });
+level8.leaveActions.push(function() { this.earthquake = false; });
 
-w = makeWind(level7, function(pos) {
+w = makeWind(level8, function(pos) {
   if (!this.level.earthquake) return xy(0, 0);
   return this.level.shockwave.getFromFrame(game.state.frame);
 });
@@ -138,22 +173,51 @@ function generateShockwave(start_frame, level) {
 }
 
 
-// ================= LEVEL 8 ======================== 
-var level8 = makeLevel(8);
-level8.text = [
+// ================= LEVEL 9 ======================== Saddle point
+var level9 = makeLevel(9);
+level9.text = [
   "Be there, or be square."
 ],
-level8.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
-level8.draw_extras = function() {
+level9.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level9.draw_extras = function() {
 }
-level8.center = scale(game.size, 0.5).yshift(level_text_height/2)
-level8.strength = 2;
-w = makeWind(level8, function(pos) {
+level9.strength = 2;
+w = makeWind(level9, function(pos) {
   return xy(this.level.strength * Math.sin(pos.y/100), this.level.strength * Math.sin(pos.x/100));
 });
 
 
-
+// ================= LEVEL 10 ======================== Vortex maze
+var level10 = makeLevel(10);
+level10.text = [
+  "Watch your step!"
+],
+level10.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level10.draw_extras = function() {
+}
+level10.center = scale(game.size, 0.5).yshift(level_text_height/2)
+level10.vortices = [
+  [xy(100, 200), 1],
+  [xy(100, 400), -1],
+  [xy(250, 250), 1],
+  [xy(200, 500), -1],
+  [xy(370, 370), -1],
+  [xy(550, 300), -1],
+  [xy(640, 480), 1],
+  [xy(720, 180), 1],
+]
+for (var i = 0; i < level10.vortices.length; i++) {
+  var w = makeWind(level10, function(pos) {
+    var pos2 = subtract(pos, this.center);
+    var scale = 200;
+    return xy(
+      this.dir * scale * pos2.y / (pos2.r * pos2.r),
+      -this.dir * scale * pos2.x / (pos2.r * pos2.r)
+    )
+  });
+  w.center = level10.vortices[i][0];
+  w.dir = level10.vortices[i][1];
+}
 
 
 

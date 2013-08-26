@@ -61,9 +61,7 @@ function Game(params) {
   }
   this.tick = function() {
     this.state.frame++;
-    for (var i = 0; i < this.tickActions.length; i++) this.tickActions[i].call(this);
     this.stage();
-    for (var i = 0; i < this.finalActions.length; i++) this.finalActions[i].call(this);
   }
   this.next = function() {
     if (!this.win) setTimeout(function() { game.tick() }, 1000/this.fps);
@@ -79,10 +77,12 @@ function Game(params) {
     setTimeout(function() { game.stage = game.gameplay; game.next(); }, 5*1000);
   }
   this.gameplay = function() {
+    for (var i = 0; i < this.tickActions.length; i++) this.tickActions[i].call(this);
     clear(this.ctx);
     iter(this.objects, function(obj) { obj.preTick(); });
     iter(this.objects, function(obj) { obj.tick(); });
     iter(this.objects, function(obj) { obj.draw(); });
+    for (var i = 0; i < this.finalActions.length; i++) this.finalActions[i].call(this);
     this.next();
   }
   

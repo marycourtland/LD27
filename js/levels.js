@@ -76,3 +76,5 @@ function makeLevelObject(parent_level) {
   obj.draw = function() { if (game.levels[game.current_level].id != this.level.id) return; this._draw(); }
   return obj;
 }
+
+

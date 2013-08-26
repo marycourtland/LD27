@@ -1,4 +1,4 @@
-var start_level = 7;
+var start_level = 0;
 
 // Boolean options
 var leave_ball_imprints = false;
@@ -25,7 +25,7 @@ var mote_size = xy(3, 3);
 
 var swamp_speed_reduction = 0.28;
 var grass_speed_boost = 5;
-var num_motes = 50;
+var num_motes = 100;
 
 var default_font = {size: 16, type: 'Arial', italic: false};
 var level_font = {size: 12, type: 'Arial', italic: true};

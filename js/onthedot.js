@@ -5,7 +5,6 @@ game.setTitle("On The Dot.");
 game.setSize(xy(800, 600));
 game.setFont(default_font);
 window.onload = function() {
-  game.levels[game.current_level].onload();
   game.start();
 }
 // Modes can be "design", "running", or "score"
@@ -68,3 +67,15 @@ game.enterScoreMode = function() {
 game.score = function() {
   // ...what is the point of this method.
 }
+
+// Title screen
+game.titlescreen = function() {
+  clear(this.ctx);
+  var old_font = this.display.font;
+  this.setFont({size: 36, type: 'Arial'});
+  text(this.ctx, this.title, "center", "centered");
+  this.setFont(old_font);
+  setTimeout(function() { game.stage = game.gameplay; game.next(); }, 5*1000);
+}
+
+game.stage = game.titlescreen;
