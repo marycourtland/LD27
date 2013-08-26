@@ -11,6 +11,7 @@ game.doNextLevel = function() {
     this.current_level += 1; 
     this.levels[this.current_level].onload();
   }
+  else game.stage = game.titlescreen();
 }
 
 function makeLevel(id) {

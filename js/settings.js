@@ -21,7 +21,7 @@ var attractor_radius = 10;
 var timer_pos = xy(670, 50);
 var timer_size = xy(50, 30);
 var timer_pad = xy(10, 5);
-var mote_size = xy(3, 3);
+var mote_size = xy(2, 2);
 
 var swamp_speed_reduction = 0.28;
 var grass_speed_boost = 5;
@@ -29,7 +29,7 @@ var num_motes = 100;
 
 var default_font = {size: 16, type: 'Arial', italic: false};
 var level_font = {size: 12, type: 'Arial', italic: true};
-var huge_font = {size: 72, type: 'Arial', italic: false};
+var huge_font = {size: 64, type: 'Arial', italic: true};
 
 var goal_text = "Your goal: guide the ball to the other point, in as close to 10 seconds as possible!";
 var instructions_text = "Press space to start a run, then use the arrow keys to guide the ball.";
@@ -44,8 +44,6 @@ var inputs = {
   rotate_wall_cw: "D",
   rotate_wall_ccw: "A",
 }
-
-// Colors
 var colors = {
   blackish: "#0F0404",
   bg: "#FEE882",
@@ -56,6 +54,8 @@ var colors = {
   ball2: "#B57F35",
   ball_faded: "#A1864B",
   swamp: "#6B5B0E",
-  grass: "#AFD04C",
-  mote: "#B5A28A",
+  grass: "#afd04c", //"#AFD04C",
+  mote: "black"//"#B5A28A",
+}
+score_text = {
 }

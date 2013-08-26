@@ -3,42 +3,44 @@
 // ================= LEVEL 1 ========================
 var level1 = makeLevel(1);
 level1.text = [
-  "Get to the other place in exactly ten seconds. Ten point oh, on the dot!",
+  "Remember, you need to get the other place in exactly ten seconds. Ten point oh, on the dot!",
   "Use the arrow keys to move. Press space when you're ready."
 ],
-level1.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level1.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level1.draw_extras = function() {
+  if (game.mode != 'score') return;
   game.setFont(huge_font);
-  text(game.ctx, ["This is, in fact,", "the easiest level!"], xy(240, 380), "nw", colors.blackish);
+  text(game.ctx, ["(this is, in fact,", "the easiest level!)"], xy(220, 380), "nw", colors.blackish);
   game.setFont(default_font);
 }
 
 // ================= LEVEL 2 ======================== Introduce swamp
 var level2 = makeLevel(2);
 level2.text = [
-  "Better hurry up! It will take longer to get through the swamp!"
+  "Better hurry up! It will take longer to get through the swamp!",
+  "(Also, ignore the flies.)",
 ],
-level2.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level2.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level2.draw_extras = function() {
 }
-makeSwamp(level2, end_pos.copy(), 200);
+makeSwamp(level2, end_pos.copy(), 150);
 
 // ================= LEVEL 3 ======================== Introduce grass
 var level3 = makeLevel(3);
 level3.text = [
-  "Now take your time. It's easy to run through the grass."
+  "Now take your time. It's easy to go fast on the grass."
 ],
-level3.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level3.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level3.draw_extras = function() {
 }
- makeGrass(level3, start_pos.copy(), 200);
+ makeGrass(level3, start_pos.copy(), 150);
 
 // ================= LEVEL 4 ======================== Swamp / grass maze
 var level4 = makeLevel(4);
 level4.text = [
   "Which path will you take?"
 ],
-level4.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level4.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level4.draw_extras = function() {
 }
 var v = rth(200, radians(60));
@@ -74,7 +76,7 @@ level5.text = [
   "You've grown wings! No more must you wade through swamp and grass.",
   "But where will the wind take you?"
 ],
-level5.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level5.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level5.draw_extras = function() {
 }
 var w = makeWind(level5, function(pos) { return xy(0, 1); } );
@@ -84,7 +86,7 @@ var level6 = makeLevel(6);
 level6.text = [
   "No need to rush!"
 ],
-level6.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level6.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level6.draw_extras = function() {
 }
 w = makeWind(level6, function(pos) {
@@ -96,7 +98,7 @@ var level7 = makeLevel(7);
 level7.text = [
   "Round and round."
 ],
-level7.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level7.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level7.draw_extras = function() {
 }
 level7.center = scale(game.size, 0.5).yshift(level_text_height/2)
@@ -178,7 +180,7 @@ var level9 = makeLevel(9);
 level9.text = [
   "Be there, or be square."
 ],
-level9.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level9.score_text = [" ... " + getScoreText() + "Or, press enter to try the next level."];
 level9.draw_extras = function() {
 }
 level9.strength = 2;
@@ -188,11 +190,11 @@ w = makeWind(level9, function(pos) {
 
 
 // ================= LEVEL 10 ======================== Vortex maze
-var level10 = makeLevel(10);
+var level10 = makeLevel("10");
 level10.text = [
-  "Watch your step!"
+  "Watch your step - this is the final level!"
 ],
-level10.score_text = [" ... That could have been closer to 10. Press space to try again. Or, press enter to try the next level."];
+level10.score_text = [" ... " + getScoreText() + "Or, press enter to return to the beginning."];
 level10.draw_extras = function() {
 }
 level10.center = scale(game.size, 0.5).yshift(level_text_height/2)

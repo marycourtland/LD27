@@ -72,7 +72,7 @@ function emptyCircle(ctx, center, radius, color) {
   ctx.save();
   ctx.globalCompositeOperation = "xor";
   ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
+  //ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(center.x, center.y, radius, 0, 2*Math.PI, false);
   ctx.closePath();
